@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExposeCreativeMode", "ExposeCreativeMode\ExposeCreativeMode.csproj", "{0A07911A-7DDB-4539-8105-E7F3A827881E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scratchpad", "Scratchpad\Scratchpad.csproj", "{9A45BEBC-1C4F-42C4-8C2E-5F13297472E1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0A07911A-7DDB-4539-8105-E7F3A827881E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A07911A-7DDB-4539-8105-E7F3A827881E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A07911A-7DDB-4539-8105-E7F3A827881E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A07911A-7DDB-4539-8105-E7F3A827881E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A45BEBC-1C4F-42C4-8C2E-5F13297472E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A45BEBC-1C4F-42C4-8C2E-5F13297472E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A45BEBC-1C4F-42C4-8C2E-5F13297472E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A45BEBC-1C4F-42C4-8C2E-5F13297472E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
