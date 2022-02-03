@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using System.Globalization;
 using System.Linq;
 using DefaultNamespace;
+using BepInEx.Logging;
 
 namespace BetterStats
 {
@@ -68,6 +69,7 @@ namespace BetterStats
             {
                 Console.WriteLine(e.ToString());
             }
+            Log = Logger;
         }
 
         internal void InitConfig()
@@ -107,6 +109,9 @@ namespace BetterStats
         private class ProductMetrics
         {
             public ItemProto itemProto;
+            public string Product;
+            public string Planet;
+            public string Star;
             public float production = 0;
             public float consumption = 0;
             public int producers = 0;
@@ -863,6 +868,37 @@ namespace BetterStats
                         counter[generator.catalystId].consumers++;
                     }
                 }
+            }
+        }
+        internal static ManualLogSource Log;
+        public long timeCurrent;
+        public long timePrev;
+        void Update()
+        {
+            timeCurrent = GameMain.instance.timei;
+            if (timeCurrent - timePrev >= 3600)
+            {
+                for (int i = 0; i < GameMain.data.factoryCount; i++)
+                {
+                    counter.Clear();
+                    AddPlanetFactoryData(GameMain.data.factories[i]);
+                    foreach (var prodId in counter.Keys)
+                    {
+                        counter[prodId].Star = GameMain.data.factories[i].planet.star.ToString();
+                        counter[prodId].Planet = GameMain.data.factories[i].planet.ToString();
+                        try
+                        {
+                            counter[prodId].Product = LDB.items.Select(prodId).name;
+                        }
+                        catch (Exception e)
+                        {
+                            counter[prodId].Product = "null";
+                        }
+                        Logger.LogInfo(JsonUtility.ToJson(counter[prodId]));
+                    }
+                }
+                Logger.LogInfo("\nIteration_done\n");
+                timePrev = timeCurrent;
             }
         }
     }
