@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using DefaultNamespace;
 using BepInEx.Logging;
+using Newtonsoft.Json;
 
 namespace BetterStats
 {
@@ -108,7 +109,6 @@ namespace BetterStats
 
         private class ProductMetrics
         {
-            public ItemProto itemProto;
             public string Product;
             public string Planet;
             public string Star;
@@ -116,6 +116,8 @@ namespace BetterStats
             public float consumption = 0;
             public int producers = 0;
             public int consumers = 0;
+            public long game_time_elapsed = 0;
+            public string unique_game_identifier;
         }
 
         private static void ClearEnhancedUIProductEntries()
@@ -160,11 +162,11 @@ namespace BetterStats
         {
             if (!dict.ContainsKey(id))
             {
-                ItemProto itemProto = LDB.items.Select(id);
+                string Product = LDB.items.Select(id).name;
 
                 dict.Add(id, new ProductMetrics()
                 {
-                    itemProto = itemProto
+                    Product = Product
                 });
             }
         }
@@ -873,6 +875,7 @@ namespace BetterStats
         internal static ManualLogSource Log;
         public long timeCurrent;
         public long timePrev;
+        List<ProductMetrics> jsonList = new List<ProductMetrics>();
         void Update()
         {
             timeCurrent = GameMain.instance.timei;
@@ -880,6 +883,7 @@ namespace BetterStats
             {
                 for (int i = 0; i < GameMain.data.factoryCount; i++)
                 {
+                    jsonList.Clear();
                     counter.Clear();
                     AddPlanetFactoryData(GameMain.data.factories[i]);
                     foreach (var prodId in counter.Keys)
@@ -894,8 +898,19 @@ namespace BetterStats
                         {
                             counter[prodId].Product = "null";
                         }
-                        Logger.LogInfo(JsonUtility.ToJson(counter[prodId]));
+                        counter[prodId].game_time_elapsed = timeCurrent;
+                        counter[prodId].unique_game_identifier = GameMain.data.gameDesc.galaxySeed.ToString() + " " + GameMain.data.gameDesc.creationTime.ToString();
+                        jsonList.Add(counter[prodId]);
+                        //Logger.LogInfo(counter[prodId]);
+                        //Logger.LogInfo(JsonUtility.ToJson(counter[prodId]));
+                        //Logger.LogInfo(GameMain.data.gameDesc.galaxySeed);
+                        //Logger.LogInfo(GameMain.data.gameDesc.creationTime);
                     }
+                    //Logger.LogInfo(jsonList[0]);
+                    //Logger.LogInfo(JsonUtility.ToJson(jsonList[0]));
+                    //Logger.LogInfo(JsonUtility.ToJson(jsonList[1]));
+                    //Logger.LogInfo(JsonUtility.ToJson(jsonList));
+                    Logger.LogInfo(JsonConvert.SerializeObject(jsonList));
                 }
                 Logger.LogInfo("\nIteration_done\n");
                 timePrev = timeCurrent;
