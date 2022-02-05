@@ -16,6 +16,7 @@ using Amazon;
 using Amazon.S3;
 using Amazon.S3.Transfer;
 using Amazon.S3.Model;
+using System.Threading.Tasks;
 
 namespace BetterStats.ExtractData.Sammy
 {
@@ -327,46 +328,108 @@ namespace BetterStats.ExtractData.Sammy
         public long timePrev;
         List<Metrics> jsonList = new List<Metrics>();
 
-        public static string accessKey = "";
-        public static string secretKey = "";
+        class UploadFileMPUHighLevelAPITest
+        {
+            public const string bucketName = "final-project-dsp-json";
+            public const string keyName = "DSP_json.json";
+            public const string filePath = "D://DSP_json.json";
+            // Specify your bucket region (an example region is shown).
+            public static readonly RegionEndpoint bucketRegion = RegionEndpoint.USEast1;
+            public static IAmazonS3 s3Client;
 
-        AmazonS3Config config = new AmazonS3Config();
+            //public static void Main()
+            //{
+            //    s3Client = new AmazonS3Client(bucketRegion);
+            //    UploadFileAsync().Wait();
+            //}
 
-        AmazonS3Client s3Client = new AmazonS3Client(accessKey, secretKey);
+            public static async Task UploadFileAsync()
+            {
+                try
+                {
+                    var fileTransferUtility =
+                        new TransferUtility(s3Client);
 
-        //void Update()
-        //{
-        //    timeCurrent = GameMain.instance.timei;
-        //    if (timeCurrent - timePrev >= 3600)
-        //    {
+                    //// Option 1. Upload a file. The file name is used as the object key name.
+                    //await fileTransferUtility.UploadAsync(filePath, bucketName);
+                    //Console.WriteLine("Upload 1 completed");
 
-        //        jsonList.Clear();
-        //        for (int i = 0; i < GameMain.data.factoryCount; i++)
-        //        {
-        //            counter.Clear();
-        //            AddPlanetFactoryData(GameMain.data.factories[i]);
-        //            foreach (var prodId in counter.Keys)
-        //            {
-        //                counter[prodId].metrics.Star = GameMain.data.factories[i].planet.star.ToString();
-        //                counter[prodId].metrics.Planet = GameMain.data.factories[i].planet.ToString();
-        //                try
-        //                {
-        //                    counter[prodId].metrics.Product = LDB.items.Select(prodId).name;
-        //                }
-        //                catch (Exception e)
-        //                {
-        //                    counter[prodId].metrics.Product = "null";
-        //                }
-        //                counter[prodId].metrics.game_time_elapsed = timeCurrent;
-        //                counter[prodId].metrics.unique_game_identifier = GameMain.data.gameDesc.galaxySeed.ToString() + " " + GameMain.data.gameDesc.creationTime.ToString();
-        //                jsonList.Add(counter[prodId].metrics);
-        //            }
-        //        }
-        //        Logger.LogInfo(JsonConvert.SerializeObject(jsonList));
-        //        File.WriteAllText(@"d:\DSP_json.json", JsonConvert.SerializeObject(jsonList));
-        //        Logger.LogInfo("\nIteration_done\n");
-        //        timePrev = timeCurrent;
-        //    }
-        //}
+                    // Option 2. Specify object key name explicitly.
+                    await fileTransferUtility.UploadAsync(filePath, bucketName, keyName);
+                    //Console.WriteLine("Upload 2 completed");
+
+                    //// Option 3. Upload data from a type of System.IO.Stream.
+                    //using (var fileToUpload =
+                    //    new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                    //{
+                    //    await fileTransferUtility.UploadAsync(fileToUpload,
+                    //                               bucketName, keyName);
+                    //}
+                    //Console.WriteLine("Upload 3 completed");
+
+                    //// Option 4. Specify advanced settings.
+                    //var fileTransferUtilityRequest = new TransferUtilityUploadRequest
+                    //{
+                    //    BucketName = bucketName,
+                    //    FilePath = filePath,
+                    //    StorageClass = S3StorageClass.StandardInfrequentAccess,
+                    //    PartSize = 6291456, // 6 MB.
+                    //    Key = keyName,
+                    //    CannedACL = S3CannedACL.PublicRead
+                    //};
+                    //fileTransferUtilityRequest.Metadata.Add("param1", "Value1");
+                    //fileTransferUtilityRequest.Metadata.Add("param2", "Value2");
+
+                    //await fileTransferUtility.UploadAsync(fileTransferUtilityRequest);
+                    //Console.WriteLine("Upload 4 completed");
+                }
+                catch (AmazonS3Exception e)
+                {
+                    Console.WriteLine("Error encountered on server. Message:'{0}' when writing an object", e.Message);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Unknown encountered on server. Message:'{0}' when writing an object", e.Message);
+                }
+
+            }
+        }
+
+        void Update()
+        {
+            timeCurrent = GameMain.instance.timei;
+            if (timeCurrent - timePrev >= 3600)
+            {
+
+                jsonList.Clear();
+                for (int i = 0; i < GameMain.data.factoryCount; i++)
+                {
+                    counter.Clear();
+                    AddPlanetFactoryData(GameMain.data.factories[i]);
+                    foreach (var prodId in counter.Keys)
+                    {
+                        counter[prodId].metrics.Star = GameMain.data.factories[i].planet.star.ToString();
+                        counter[prodId].metrics.Planet = GameMain.data.factories[i].planet.ToString();
+                        try
+                        {
+                            counter[prodId].metrics.Product = LDB.items.Select(prodId).name;
+                        }
+                        catch (Exception e)
+                        {
+                            counter[prodId].metrics.Product = "null";
+                        }
+                        counter[prodId].metrics.game_time_elapsed = timeCurrent;
+                        counter[prodId].metrics.unique_game_identifier = GameMain.data.gameDesc.galaxySeed.ToString() + " " + GameMain.data.gameDesc.creationTime.ToString();
+                        jsonList.Add(counter[prodId].metrics);
+                    }
+                }
+                Logger.LogInfo(JsonConvert.SerializeObject(jsonList));
+                File.WriteAllText(@"d:\DSP_json.json", JsonConvert.SerializeObject(jsonList));
+                UploadFileMPUHighLevelAPITest.s3Client = new AmazonS3Client(UploadFileMPUHighLevelAPITest.bucketRegion);
+                UploadFileMPUHighLevelAPITest.UploadFileAsync();
+                Logger.LogInfo("\nIteration_done\n");
+                timePrev = timeCurrent;
+            }
+        }
     }
 }
