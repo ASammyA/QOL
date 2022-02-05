@@ -31,6 +31,12 @@ namespace BetterStats.ExtractData.Sammy
 
         private class ProductMetrics
         {
+            public ItemProto itemProto;
+            public Metrics metrics;
+        }
+
+        public class Metrics
+        {
             public string Product;
             public string Planet;
             public string Star;
@@ -46,15 +52,16 @@ namespace BetterStats.ExtractData.Sammy
         {
             if (!dict.ContainsKey(id))
             {
-                string Product = LDB.items.Select(id).name;
+                ItemProto itemProto = LDB.items.Select(id);
 
                 dict.Add(id, new ProductMetrics()
                 {
-                    Product = Product
+                    itemProto = itemProto
                 });
+                dict[id].metrics = new Metrics();
             }
         }
-     
+
         // speed of fastest belt(mk3 belt) is 1800 items per minute
         public const float BELT_MAX_ITEMS_PER_MINUTE = 1800;
         public const float TICKS_PER_SEC = 60.0f;
@@ -119,8 +126,8 @@ namespace BetterStats.ExtractData.Sammy
                     production = Math.Min(BELT_MAX_ITEMS_PER_MINUTE, production);
                 }
 
-                counter[productId].production += production;
-                counter[productId].producers++;
+                counter[productId].metrics.production += production;
+                counter[productId].metrics.producers++;
             }
             for (int i = 1; i < factorySystem.assemblerCursor; i++)
             {
@@ -145,8 +152,8 @@ namespace BetterStats.ExtractData.Sammy
                     var productId = assembler.requires[j];
                     EnsureId(ref counter, productId);
 
-                    counter[productId].consumption += frequency * speed * assembler.requireCounts[j];
-                    counter[productId].consumers++;
+                    counter[productId].metrics.consumption += frequency * speed * assembler.requireCounts[j];
+                    counter[productId].metrics.consumers++;
                 }
 
                 for (int j = 0; j < assembler.products.Length; j++)
@@ -154,8 +161,8 @@ namespace BetterStats.ExtractData.Sammy
                     var productId = assembler.products[j];
                     EnsureId(ref counter, productId);
 
-                    counter[productId].production += frequency * speed * assembler.productCounts[j];
-                    counter[productId].producers++;
+                    counter[productId].metrics.production += frequency * speed * assembler.productCounts[j];
+                    counter[productId].metrics.producers++;
                 }
             }
             for (int i = 1; i < factorySystem.fractionateCursor; i++)
@@ -168,16 +175,16 @@ namespace BetterStats.ExtractData.Sammy
                     var productId = fractionator.fluidId;
                     EnsureId(ref counter, productId);
 
-                    counter[productId].consumption += 60f * 30f * fractionator.produceProb;
-                    counter[productId].consumers++;
+                    counter[productId].metrics.consumption += 60f * 30f * fractionator.produceProb;
+                    counter[productId].metrics.consumers++;
                 }
                 if (fractionator.productId != 0)
                 {
                     var productId = fractionator.productId;
                     EnsureId(ref counter, productId);
 
-                    counter[productId].production += 60f * 30f * fractionator.produceProb;
-                    counter[productId].producers++;
+                    counter[productId].metrics.production += 60f * 30f * fractionator.produceProb;
+                    counter[productId].metrics.producers++;
                 }
 
             }
@@ -188,8 +195,8 @@ namespace BetterStats.ExtractData.Sammy
 
                 EnsureId(ref counter, ejector.bulletId);
 
-                counter[ejector.bulletId].consumption += 60f / (float)(ejector.chargeSpend + ejector.coldSpend) * 600000f;
-                counter[ejector.bulletId].consumers++;
+                counter[ejector.bulletId].metrics.consumption += 60f / (float)(ejector.chargeSpend + ejector.coldSpend) * 600000f;
+                counter[ejector.bulletId].metrics.consumers++;
             }
             for (int i = 1; i < factorySystem.siloCursor; i++)
             {
@@ -198,8 +205,8 @@ namespace BetterStats.ExtractData.Sammy
 
                 EnsureId(ref counter, silo.bulletId);
 
-                counter[silo.bulletId].consumption += 60f / (float)(silo.chargeSpend + silo.coldSpend) * 600000f;
-                counter[silo.bulletId].consumers++;
+                counter[silo.bulletId].metrics.consumption += 60f / (float)(silo.chargeSpend + silo.coldSpend) * 600000f;
+                counter[silo.bulletId].metrics.consumers++;
             }
 
             for (int i = 1; i < factorySystem.labCursor; i++)
@@ -224,8 +231,8 @@ namespace BetterStats.ExtractData.Sammy
                         var productId = lab.requires[j];
                         EnsureId(ref counter, productId);
 
-                        counter[productId].consumption += frequency * lab.requireCounts[j];
-                        counter[productId].consumers++;
+                        counter[productId].metrics.consumption += frequency * lab.requireCounts[j];
+                        counter[productId].metrics.consumers++;
                     }
 
                     for (int j = 0; j < lab.products.Length; j++)
@@ -233,8 +240,8 @@ namespace BetterStats.ExtractData.Sammy
                         var productId = lab.products[j];
                         EnsureId(ref counter, productId);
 
-                        counter[productId].production += frequency * lab.productCounts[j];
-                        counter[productId].producers++;
+                        counter[productId].metrics.production += frequency * lab.productCounts[j];
+                        counter[productId].metrics.producers++;
                     }
                 }
                 else if (lab.researchMode && lab.techId > 0)
@@ -253,8 +260,8 @@ namespace BetterStats.ExtractData.Sammy
                         var hashesPerCube = (float) techState.hashNeeded / cubesNeeded;
                         var researchFreq = hashesPerCube / researchRate;
                         EnsureId(ref counter, item);
-                        counter[item].consumers++;
-                        counter[item].consumption += researchFreq * GameMain.history.techSpeed;
+                        counter[item].metrics.consumers++;
+                        counter[item].metrics.consumption += researchFreq * GameMain.history.techSpeed;
                     }
                 }
             }
@@ -272,8 +279,8 @@ namespace BetterStats.ExtractData.Sammy
                     var productId = station.collectionIds[j];
                     EnsureId(ref counter, productId);
 
-                    counter[productId].production += 60f * TICKS_PER_SEC * station.collectionPerTick[j] * collectSpeedRate;
-                    counter[productId].producers++;
+                    counter[productId].metrics.production += 60f * TICKS_PER_SEC * station.collectionPerTick[j] * collectSpeedRate;
+                    counter[productId].metrics.producers++;
                 }
             }
             for (int i = 1; i < planetFactory.powerSystem.genCursor; i++)
@@ -295,22 +302,22 @@ namespace BetterStats.ExtractData.Sammy
                     var productId = generator.fuelId;
                     EnsureId(ref counter, productId);
 
-                    counter[productId].consumption += 60.0f * TICKS_PER_SEC * generator.useFuelPerTick / generator.fuelHeat;
-                    counter[productId].consumers++;
+                    counter[productId].metrics.consumption += 60.0f * TICKS_PER_SEC * generator.useFuelPerTick / generator.fuelHeat;
+                    counter[productId].metrics.consumers++;
                 }
                 else
                 {
                     var productId = generator.productId;
                     EnsureId(ref counter, productId);
 
-                    counter[productId].production += 60.0f * TICKS_PER_SEC * generator.capacityCurrentTick / generator.productHeat;
-                    counter[productId].producers++;
+                    counter[productId].metrics.production += 60.0f * TICKS_PER_SEC * generator.capacityCurrentTick / generator.productHeat;
+                    counter[productId].metrics.producers++;
                     if (generator.catalystId > 0)
                     {
                         // account for consumption of critical photons by ray receivers
                         EnsureId(ref counter, generator.catalystId);
-                        counter[generator.catalystId].consumption += RAY_RECEIVER_GRAVITON_LENS_CONSUMPTION_RATE_PER_MIN;
-                        counter[generator.catalystId].consumers++;
+                        counter[generator.catalystId].metrics.consumption += RAY_RECEIVER_GRAVITON_LENS_CONSUMPTION_RATE_PER_MIN;
+                        counter[generator.catalystId].metrics.consumers++;
                     }
                 }
             }
@@ -318,7 +325,7 @@ namespace BetterStats.ExtractData.Sammy
         internal static ManualLogSource Log;
         public long timeCurrent;
         public long timePrev;
-        List<ProductMetrics> jsonList = new List<ProductMetrics>();
+        List<Metrics> jsonList = new List<Metrics>();
 
         void Update()
         {
@@ -332,33 +339,23 @@ namespace BetterStats.ExtractData.Sammy
                     AddPlanetFactoryData(GameMain.data.factories[i]);
                     foreach (var prodId in counter.Keys)
                     {
-                        counter[prodId].Star = GameMain.data.factories[i].planet.star.ToString();
-                        counter[prodId].Planet = GameMain.data.factories[i].planet.ToString();
+                        counter[prodId].metrics.Star = GameMain.data.factories[i].planet.star.ToString();
+                        counter[prodId].metrics.Planet = GameMain.data.factories[i].planet.ToString();
                         try
                         {
-                            counter[prodId].Product = LDB.items.Select(prodId).name;
+                            counter[prodId].metrics.Product = LDB.items.Select(prodId).name;
                         }
                         catch (Exception e)
                         {
-                            counter[prodId].Product = "null";
+                            counter[prodId].metrics.Product = "null";
                         }
-                        counter[prodId].game_time_elapsed = timeCurrent;
-                        counter[prodId].unique_game_identifier = GameMain.data.gameDesc.galaxySeed.ToString() + " " + GameMain.data.gameDesc.creationTime.ToString();
-                        jsonList.Add(counter[prodId]);
-                        //Logger.LogInfo(counter[prodId]);
-                        //Logger.LogInfo(JsonUtility.ToJson(counter[prodId]));
-                        //Logger.LogInfo(GameMain.data.gameDesc.galaxySeed);
-                        //Logger.LogInfo(GameMain.data.gameDesc.creationTime);
+                        counter[prodId].metrics.game_time_elapsed = timeCurrent;
+                        counter[prodId].metrics.unique_game_identifier = GameMain.data.gameDesc.galaxySeed.ToString() + " " + GameMain.data.gameDesc.creationTime.ToString();
+                        jsonList.Add(counter[prodId].metrics);
                     }
                 }
-                //Logger.LogInfo(jsonList[0]);
-                //Logger.LogInfo(JsonUtility.ToJson(jsonList[0]));
-                //Logger.LogInfo(JsonUtility.ToJson(jsonList[1]));
-                //Logger.LogInfo(JsonUtility.ToJson(jsonList));
                 Logger.LogInfo(JsonConvert.SerializeObject(jsonList));
-                //File.WriteAllText(@"d:\DSP_json.json", JsonConvert.SerializeObject(jsonList));
-                //AmazonS3Uploader amazonS3 = new AmazonS3Uploader();
-                //amazonS3.UploadFile();
+                File.WriteAllText(@"d:\DSP_json.json", JsonConvert.SerializeObject(jsonList));
                 Logger.LogInfo("\nIteration_done\n");
                 timePrev = timeCurrent;
             }
