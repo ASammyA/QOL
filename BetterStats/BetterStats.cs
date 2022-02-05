@@ -29,7 +29,7 @@ namespace BetterStats.ExtractData.Sammy
             Log = Logger;
         }
 
-        private class ProductMetrics
+        public class ProductMetrics
         {
             public ItemProto itemProto;
             public Metrics metrics;
@@ -327,38 +327,46 @@ namespace BetterStats.ExtractData.Sammy
         public long timePrev;
         List<Metrics> jsonList = new List<Metrics>();
 
-        void Update()
-        {
-            timeCurrent = GameMain.instance.timei;
-            if (timeCurrent - timePrev >= 3600)
-            {
-                jsonList.Clear();
-                for (int i = 0; i < GameMain.data.factoryCount; i++)
-                {
-                    counter.Clear();
-                    AddPlanetFactoryData(GameMain.data.factories[i]);
-                    foreach (var prodId in counter.Keys)
-                    {
-                        counter[prodId].metrics.Star = GameMain.data.factories[i].planet.star.ToString();
-                        counter[prodId].metrics.Planet = GameMain.data.factories[i].planet.ToString();
-                        try
-                        {
-                            counter[prodId].metrics.Product = LDB.items.Select(prodId).name;
-                        }
-                        catch (Exception e)
-                        {
-                            counter[prodId].metrics.Product = "null";
-                        }
-                        counter[prodId].metrics.game_time_elapsed = timeCurrent;
-                        counter[prodId].metrics.unique_game_identifier = GameMain.data.gameDesc.galaxySeed.ToString() + " " + GameMain.data.gameDesc.creationTime.ToString();
-                        jsonList.Add(counter[prodId].metrics);
-                    }
-                }
-                Logger.LogInfo(JsonConvert.SerializeObject(jsonList));
-                File.WriteAllText(@"d:\DSP_json.json", JsonConvert.SerializeObject(jsonList));
-                Logger.LogInfo("\nIteration_done\n");
-                timePrev = timeCurrent;
-            }
-        }
+        public static string accessKey = "";
+        public static string secretKey = "";
+
+        AmazonS3Config config = new AmazonS3Config();
+
+        AmazonS3Client s3Client = new AmazonS3Client(accessKey, secretKey);
+
+        //void Update()
+        //{
+        //    timeCurrent = GameMain.instance.timei;
+        //    if (timeCurrent - timePrev >= 3600)
+        //    {
+
+        //        jsonList.Clear();
+        //        for (int i = 0; i < GameMain.data.factoryCount; i++)
+        //        {
+        //            counter.Clear();
+        //            AddPlanetFactoryData(GameMain.data.factories[i]);
+        //            foreach (var prodId in counter.Keys)
+        //            {
+        //                counter[prodId].metrics.Star = GameMain.data.factories[i].planet.star.ToString();
+        //                counter[prodId].metrics.Planet = GameMain.data.factories[i].planet.ToString();
+        //                try
+        //                {
+        //                    counter[prodId].metrics.Product = LDB.items.Select(prodId).name;
+        //                }
+        //                catch (Exception e)
+        //                {
+        //                    counter[prodId].metrics.Product = "null";
+        //                }
+        //                counter[prodId].metrics.game_time_elapsed = timeCurrent;
+        //                counter[prodId].metrics.unique_game_identifier = GameMain.data.gameDesc.galaxySeed.ToString() + " " + GameMain.data.gameDesc.creationTime.ToString();
+        //                jsonList.Add(counter[prodId].metrics);
+        //            }
+        //        }
+        //        Logger.LogInfo(JsonConvert.SerializeObject(jsonList));
+        //        File.WriteAllText(@"d:\DSP_json.json", JsonConvert.SerializeObject(jsonList));
+        //        Logger.LogInfo("\nIteration_done\n");
+        //        timePrev = timeCurrent;
+        //    }
+        //}
     }
 }
